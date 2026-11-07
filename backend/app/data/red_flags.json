@@ -1,0 +1,133 @@
+{
+  "_comment": "Configurable red-flag lexicon (report §4.9). Patterns are regular expressions matched on normalised lower-case text. Indic and romanised phrases MUST be reviewed by native speakers / clinicians before any real deployment. Matching deliberately ignores negation: it is safer to over-escalate than to miss an emergency.",
+  "emergency": [
+    {"id": "chest_pain", "category": "cardiac", "label": "Chest pain / pressure",
+     "patterns": {
+       "en": ["chest (pain|pressure|tightness|discomfort)", "pain in (my |the )?chest", "heart attack", "crushing pain"],
+       "hi": ["सीने में (तेज़ |तेज )?(दर्द|जकड़न|दबाव)", "छाती में (दर्द|जकड़न)", "दिल का दौरा", "हार्ट अटैक"],
+       "kn": ["ಎದೆ ?(ನೋವು|ಬಿಗಿತ|ಒತ್ತಡ)", "ಹೃದಯಾಘಾತ"],
+       "te": ["ఛాతీ ?(నొప్పి|బిగుతు|ఒత్తిడి)", "గుండెపోటు"],
+       "rom": ["seene mein dard", "chhati mein dard", "yede novu", "chaati noppi"]}},
+    {"id": "breathing", "category": "respiratory", "label": "Severe breathing difficulty",
+     "patterns": {
+       "en": ["(can'?t|cannot|unable to|not able to) breathe", "difficulty (in )?breathing", "trouble breathing", "struggling to breathe", "short(ness)? of breath", "gasping", "choking"],
+       "hi": ["सांस (लेने )?में (बहुत )?(तकलीफ|दिक्कत|परेशानी)", "साँस (लेने )?में (बहुत )?(तकलीफ|दिक्कत|परेशानी)", "सांस नहीं (आ रही|ले पा)", "साँस नहीं (आ रही|ले पा)", "दम घुट"],
+       "kn": ["ಉಸಿರಾಟ(ದ)? ?(ತೊಂದರೆ|ಕಷ್ಟ)", "ಉಸಿರಾಡಲು ಕಷ್ಟ", "ಉಸಿರು ಕಟ್ಟ"],
+       "te": ["శ్వాస ?(తీసుకోవడం )?(కష్టం|ఇబ్బంది)", "ఊపిరి ఆడ(టం లేదు|డం లేదు|క)", "ఊపిరి తీసుకోలేక"],
+       "rom": ["saans nahi", "saans lene mein takleef", "usiraata kashta", "oopiri aadadam"]}},
+    {"id": "unconscious", "category": "neuro", "label": "Unconscious / not responding / fainted",
+     "patterns": {
+       "en": ["unconscious", "passed out", "not responding", "unresponsive", "collapsed", "fainted"],
+       "hi": ["बेहोश", "होश नहीं", "जवाब नहीं दे रहा", "गिर पड़"],
+       "kn": ["ಪ್ರಜ್ಞೆ ?(ತಪ್ಪ|ಇಲ್ಲ)", "ಮೂರ್ಛೆ"],
+       "te": ["స్పృహ ?(తప్ప|లేదు)", "మూర్ఛపోయ"],
+       "rom": ["behosh", "pragne tapp", "spruha"]}},
+    {"id": "stroke", "category": "neuro", "label": "Possible stroke signs",
+     "patterns": {
+       "en": ["face (is )?drooping", "drooping face", "slurred speech", "can'?t speak", "sudden (weakness|numbness) (on|in) (one|my) (side|arm|leg)", "one side of (my |the )?body", "stroke", "sudden confusion"],
+       "hi": ["लकवा", "चेहरा टेढ़ा", "बोलने में (दिक्कत|तकलीफ)", "ज़ुबान लड़खड़ा", "एक तरफ (से )?कमज़ोरी"],
+       "kn": ["ಪಾರ್ಶ್ವವಾಯು", "ಮುಖ ಓರೆ", "ಮಾತನಾಡಲು ಕಷ್ಟ"],
+       "te": ["పక్షవాతం", "ముఖం వంకర", "మాట్లాడటం కష్టం", "మాట ముద్దగా"],
+       "rom": ["lakwa", "paralysis", "pakshavata"]}},
+    {"id": "seizure", "category": "neuro", "label": "Seizure / convulsions",
+     "patterns": {
+       "en": ["seizure", "convulsion", "having a fit", "epileptic fit", "\\bfits\\b"],
+       "hi": ["दौरा", "मिर्गी", "झटके"],
+       "kn": ["ಫಿಟ್ಸ್", "ಅಪಸ್ಮಾರ", "ಸೆಳೆತ"],
+       "te": ["ఫిట్స్", "మూర్ఛ", "మూర్చ"],
+       "rom": ["mirgi", "daura pad"]}},
+    {"id": "bleeding", "category": "trauma", "label": "Severe bleeding",
+     "patterns": {
+       "en": ["bleeding (a lot|heavily|badly|profusely)", "(severe|heavy|uncontrolled|won'?t stop) bleeding", "bleeding (that )?(won'?t|will not|does not) stop", "blood (is )?(gushing|pouring)"],
+       "hi": ["बहुत खून (बह|निकल)", "खून (बंद )?नहीं (रुक|थम)", "खून बहना बंद नहीं"],
+       "kn": ["ತುಂಬಾ ರಕ್ತ(ಸ್ರಾವ| ?ಬರ)", "ರಕ್ತ ನಿಲ್ಲ"],
+       "te": ["విపరీతమైన రక్తస్రావం", "రక్తం ఆగడం లేదు", "చాలా రక్తం"],
+       "rom": ["bahut khoon", "khoon nahi ruk"]}},
+    {"id": "blood_vomit_cough", "category": "bleeding", "label": "Vomiting or coughing blood",
+     "patterns": {
+       "en": ["(vomit(ing|ed)?|throwing up|coughing( up)?|cough(ed)?) (up )?blood", "blood in (my )?vomit"],
+       "hi": ["खून की उल्टी", "उल्टी में खून", "खांसी में खून", "खून (की )?खांस"],
+       "kn": ["ರಕ್ತ ವಾಂತಿ", "ವಾಂತಿಯಲ್ಲಿ ರಕ್ತ", "ಕೆಮ್ಮಿನಲ್ಲಿ ರಕ್ತ"],
+       "te": ["రక్తం వాంతి", "వాంతిలో రక్తం", "దగ్గులో రక్తం"],
+       "rom": ["khoon ki ulti", "raktha vanti"]}},
+    {"id": "poisoning", "category": "toxic", "label": "Poisoning / overdose",
+     "patterns": {
+       "en": ["poison", "overdose", "swallowed (a lot of )?(pills|tablets|medicine|bleach|kerosene|pesticide|phenyl)", "drank (bleach|kerosene|pesticide|phenyl)"],
+       "hi": ["ज़हर", "जहर", "ओवरडोज़", "ओवरडोज", "कीटनाशक (पी|खा)"],
+       "kn": ["ವಿಷ ?(ಸೇವ|ಕುಡಿ|ತಿನ್ನ)", "ವಿಷ"],
+       "te": ["విషం ?(తాగ|తిన)", "విషం", "అధిక మోతాదు"],
+       "rom": ["zeher", "vish piya", "vishavannu"]}},
+    {"id": "snakebite", "category": "toxic", "label": "Snake or animal bite",
+     "patterns": {
+       "en": ["snake ?bite", "bitten by (a )?snake", "snake bit"],
+       "hi": ["सांप (ने )?काट", "साँप (ने )?काट"],
+       "kn": ["ಹಾವು ಕಚ್ಚ"],
+       "te": ["పాము ?(కాటు|కరిచ)"],
+       "rom": ["saanp ne kaata", "havu kachchi", "paamu karichindi"]}},
+    {"id": "anaphylaxis", "category": "allergy", "label": "Severe allergic reaction",
+     "patterns": {
+       "en": ["anaphyla", "(face|lips|tongue|throat) (is |are )?swell", "swelling (of|in) (the |my )?(face|lips|tongue|throat)", "throat (is )?closing"],
+       "hi": ["गला (बंद|सूज)", "चेहरे (पर )?सूजन", "होंठ(ों)? (पर )?सूज", "जीभ (पर )?सूज"],
+       "kn": ["ಗಂಟಲು ?(ಊತ|ಬಿಗಿ)", "ಮುಖ ಊತ|ಮುಖದಲ್ಲಿ ಊತ"],
+       "te": ["గొంతు ?(వాపు|బిగుసుకు)", "ముఖం వాపు"],
+       "rom": []}},
+    {"id": "head_injury", "category": "trauma", "label": "Serious head injury",
+     "patterns": {
+       "en": ["(hit|injured|hurt) (my |his |her |the )?head", "head injury", "fell on (my |his |her )?head"],
+       "hi": ["सिर (पर|में) (चोट|गंभीर चोट)", "सिर फट"],
+       "kn": ["ತಲೆಗೆ ಪೆಟ್ಟು", "ತಲೆ ಗಾಯ"],
+       "te": ["తలకు దెబ్బ", "తల గాయం"],
+       "rom": []}},
+    {"id": "worst_headache", "category": "neuro", "label": "Sudden severe headache",
+     "patterns": {
+       "en": ["worst headache", "sudden (very )?severe headache", "thunderclap"],
+       "hi": ["अचानक (बहुत )?तेज़ सिरदर्द", "अचानक (बहुत )?तेज सिरदर्द", "सबसे (बुरा|तेज़) सिरदर्द"],
+       "kn": ["ಇದ್ದಕ್ಕಿದ್ದಂತೆ ತೀವ್ರ ತಲೆನೋವು"],
+       "te": ["అకస్మాత్తుగా తీవ్రమైన తలనొప్పి"],
+       "rom": []}},
+    {"id": "pregnancy_emergency", "category": "obstetric", "label": "Pregnancy danger signs",
+     "patterns": {
+       "en": ["pregnan\\w* .{0,40}(heavy bleeding|bleeding|severe pain|no (baby )?movement|fits)", "(bleeding|severe pain) .{0,30}pregnan"],
+       "hi": ["गर्भावस्था में (खून|ब्लीडिंग|तेज़ दर्द)", "गर्भवती.{0,20}(खून|ब्लीडिंग)"],
+       "kn": ["ಗರ್ಭಿಣಿ.{0,20}(ರಕ್ತಸ್ರಾವ|ತೀವ್ರ ನೋವು)"],
+       "te": ["గర్భిణీ.{0,20}(రక్తస్రావం|తీవ్రమైన నొప్పి)"],
+       "rom": []}},
+    {"id": "self_harm", "category": "self_harm", "label": "Thoughts of self-harm",
+     "patterns": {
+       "en": ["suicid", "kill myself", "end my life", "want to die", "don'?t want to live", "hurt myself", "self[- ]harm"],
+       "hi": ["आत्महत्या", "मरना चाहता", "मरना चाहती", "जान दे", "जीना नहीं चाहता", "जीना नहीं चाहती", "खुद को (नुकसान|चोट)"],
+       "kn": ["ಆತ್ಮಹತ್ಯೆ", "ಸಾಯಬೇಕು", "ಸಾಯಲು ಬಯಸ", "ಬದುಕಲು ಇಷ್ಟವಿಲ್ಲ"],
+       "te": ["ఆత్మహత్య", "చనిపోవాలి", "చనిపోవాలని", "బతకాలని లేదు"],
+       "rom": ["aatmahatya", "marna chahta", "marna chahti", "saayabeku", "chanipovali"]}}
+  ],
+  "urgent": [
+    {"id": "prolonged_fever", "category": "infection", "label": "Fever for several days",
+     "patterns": {
+       "en": ["fever (for|since|from) (more than |over |about )?(3|three|4|four|5|five|6|six|7|seven|a week)", "(3|three|4|four|5|five|6|six|7|seven) days? (of )?fever", "fever .{0,20}(not (going|coming) down|won'?t go down)", "high fever"],
+       "hi": ["(3|४|४|5|६|७|तीन|चार|पांच|पाँच|छह|सात) दिन(ों)? से (तेज़ )?बुखार", "बुखार (नहीं )?(उतर|कम) नहीं", "तेज़ बुखार", "तेज बुखार"],
+       "kn": ["(3|4|5|6|7|ಮೂರು|ನಾಲ್ಕು|ಐದು) ದಿನ(ಗಳಿಂದ)? ಜ್ವರ", "ತೀವ್ರ ಜ್ವರ", "ಜ್ವರ ಇಳಿಯುತ್ತಿಲ್ಲ"],
+       "te": ["(3|4|5|6|7|మూడు|నాలుగు|ఐదు) రోజులుగా జ్వరం", "తీవ్రమైన జ్వరం", "జ్వరం తగ్గడం లేదు"],
+       "rom": []}},
+    {"id": "blood_stool_urine", "category": "gi_gu", "label": "Blood in stool or urine",
+     "patterns": {
+       "en": ["blood in (my |the )?(stool|urine|poop|motion)", "black (tarry )?stool", "bloody (stool|urine)"],
+       "hi": ["(मल|पेशाब|टट्टी) में खून", "काला मल"],
+       "kn": ["ಮಲದಲ್ಲಿ ರಕ್ತ", "ಮೂತ್ರದಲ್ಲಿ ರಕ್ತ"],
+       "te": ["మలంలో రక్తం", "మూత్రంలో రక్తం"],
+       "rom": []}},
+    {"id": "dehydration", "category": "gi_gu", "label": "Signs of dehydration",
+     "patterns": {
+       "en": ["can'?t (keep|hold) (anything|water|fluids) down", "vomiting (again and again|continuously|repeatedly|nonstop)", "(no|not) (passed )?urine (for|since)", "very dry mouth", "severe (diarrh|vomit)"],
+       "hi": ["बार-बार उल्टी", "पानी (भी )?नहीं (टिक|रुक)", "पेशाब नहीं (आ रहा|हुआ)"],
+       "kn": ["ಪದೇ ಪದೇ ವಾಂತಿ", "ಮೂತ್ರ ಬರುತ್ತಿಲ್ಲ"],
+       "te": ["పదే పదే వాంతులు", "మూత్రం రావడం లేదు"],
+       "rom": []}},
+    {"id": "general_worsening", "category": "general", "label": "Sudden severe or worsening symptoms",
+     "patterns": {
+       "en": ["severe (abdominal|stomach|belly) pain", "getting (much )?worse (quickly|fast)", "vision (loss|suddenly)", "sudden loss of vision"],
+       "hi": ["पेट में (बहुत )?तेज़ दर्द", "पेट में (बहुत )?तेज दर्द", "अचानक (दिखना|नज़र) (बंद|कम)"],
+       "kn": ["ಹೊಟ್ಟೆ ನೋವು ತೀವ್ರ", "ತೀವ್ರ ಹೊಟ್ಟೆ ನೋವು"],
+       "te": ["తీవ్రమైన కడుపు నొప్పి"],
+       "rom": []}}
+  ]
+}

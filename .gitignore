@@ -1,0 +1,48 @@
+.env
+*.env.local
+backend/data/
+venv/
+__pycache__/
+.pytest_cache/
+frontend/node_modules/
+frontend/.next/
+e2e/node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+
+# Python
+**/venv/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+*.py[cod]
+
+# Node and Next.js
+**/node_modules/
+**/.next/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Project backups - keep local, do not upload
+backend-backup-step2/
+frontend-backup-step3/
+swasthya-mitra-backup-2026-11-07/
+
+# Temporary and backup files
+**/*backup*/
+**/*.backup
+**/*.step*-backup*
+
+# Generated TypeScript files
+**/*.tsbuildinfo
+
+# Keep prescription test image local
+e2e/prescription.jpg

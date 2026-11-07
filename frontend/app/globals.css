@@ -1,0 +1,59 @@
+@import "@fontsource/atkinson-hyperlegible/400.css";
+@import "@fontsource/atkinson-hyperlegible/700.css";
+@import "@fontsource/noto-sans-devanagari/400.css";
+@import "@fontsource/noto-sans-devanagari/700.css";
+@import "@fontsource/noto-sans-kannada/400.css";
+@import "@fontsource/noto-sans-kannada/700.css";
+@import "@fontsource/noto-sans-telugu/400.css";
+@import "@fontsource/noto-sans-telugu/700.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --scale: 1;
+  --ground: #f2f6f5;
+  --surface: #ffffff;
+  --ink: #10302d;
+  --muted: #4b625f;
+  --line: #cfdcd9;
+  --brand: #0e6b62;
+  --brand-dark: #0a4f48;
+  --brand-tint: #dff0ed;
+  --saffron: #e59a0b;
+  --saffron-tint: #fdf0d2;
+  --saffron-ink: #6b4300;
+  --sos: #c4262e;
+  --sos-dark: #9b1c23;
+  --sos-tint: #fde8e9;
+  --ok: #1c7a3f;
+  --ok-tint: #dff3e5;
+}
+/* High-contrast mode (report: accessibility for elderly users) */
+:root[data-contrast="high"] {
+  --ground: #ffffff; --ink: #000000; --muted: #1f1f1f; --line: #000000;
+  --brand: #004d46; --brand-dark: #00332f; --brand-tint: #e6f4f2;
+  --saffron-ink: #3d2600; --sos: #a60000;
+}
+
+html { background: var(--ground); color: var(--ink); -webkit-text-size-adjust: 100%; }
+body { font-family: "Atkinson Hyperlegible", "Noto Sans Devanagari", "Noto Sans Kannada", "Noto Sans Telugu", system-ui, sans-serif; font-size: calc(1.125rem * var(--scale)); line-height: 1.6; }
+
+:focus-visible { outline: 4px solid #1a56db; outline-offset: 3px; border-radius: 6px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+@layer components {
+  .btn { @apply inline-flex min-h-[52px] items-center justify-center gap-2 rounded-xl px-6 py-3 text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
+  .btn-quiet { @apply btn border-2 border-line bg-surface text-ink hover:border-brand; }
+  .btn-danger { @apply btn bg-sos text-white hover:bg-sos-dark; }
+  .field { @apply min-h-[52px] w-full rounded-xl border-2 border-line bg-surface px-4 py-3 text-base text-ink placeholder:text-muted focus:border-brand; }
+  .label { @apply mb-1.5 block text-sm font-bold text-ink; }
+  .panel { @apply rounded-2xl border border-line bg-surface p-5 sm:p-6; }
+}
+
+@keyframes breathe { 0%,100% { transform: scale(1); opacity: .35 } 50% { transform: scale(1.18); opacity: .1 } }
+.orb-ring { animation: breathe 2.4s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg) } }
+.spinner { animation: spin .8s linear infinite; }
