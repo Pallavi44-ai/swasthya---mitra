@@ -1,67 +1,97 @@
-# Swasthya Mitra – AI-integrated, voice-enabled healthcare companion
+# Swasthya Mitra – AI-Integrated, Voice-Enabled Healthcare Companion
 
-Final-year B.Tech CSE capstone (CMR University). Team: Pallavi L, Pari Bhoomi, Piyush Mishra, Pragathi P N. Guide: Sheik Jamil Ahmed.
+Final-year B.Tech CSE capstone project at CMR University.
 
-> **Not a medical device.** It does not diagnose, prescribe or change doses. Emergencies are escalated to 108 by a deterministic rule layer *before* any AI is called. No clinical validation has been done.
+**Team:** Pallavi L, Pari Bhoomi, Piyush Mishra, Pragathi P N  
+**Guide:** Sheik Jamil Ahmed
 
-**What is honestly implemented, what needs configuration and what is not built: see [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md).** Read it before the evaluation.
+> **Important:** This project is not a medical device. It does not diagnose, prescribe, or change medication doses. Emergencies are escalated to 108 through a deterministic rule layer before AI is called. The system has not undergone clinical validation.
 
-| Folder | Content |
+For an honest breakdown of implemented features, configuration requirements, and pending work, see [Implementation Status](docs/IMPLEMENTATION_STATUS.md).
+
+## Project Structure
+
+| Folder | Contents |
 |---|---|
-| `backend/` | FastAPI + SQLAlchemy API, safety layer, RAG, OCR, reminders, authentication/MFA, **106 automated tests** |
-| `frontend/` | Next.js 14 web app (4 languages, large-text and high-contrast modes, voice in/out) |
-| `e2e/` | Playwright browser flow (26 steps) incl. MFA, lockout, biometric (virtual authenticator), password reset |
-| `docs/` | ARCHITECTURE, API, DATABASE (+`schema.sql`), SECURITY_AUTH (+provider set-up), IMPLEMENTATION_STATUS, DEPLOYMENT |
+| `backend/` | FastAPI backend, authentication, safety layer, RAG, OCR, reminders and tests |
+| `frontend/` | Next.js 14 web application with multilingual and voice features |
+| `e2e/` | Browser end-to-end test flow |
+| `docs/` | Architecture, API, database, security, deployment and implementation documentation |
 
-## Run it locally on Windows (PowerShell)
+## Prerequisites
 
-Prerequisites (install once): **Python 3.11+** (python.org, tick "Add to PATH"), **Node.js 20 LTS+**, and optionally **Tesseract OCR** (UB-Mannheim Windows installer, for prescription photos).
+- Python 3.11+
+- Node.js 20 LTS+
+- Tesseract OCR (optional, for prescription image processing)
 
-**Window 1 – backend**
+## Run Locally on Windows
+
+### 1. Backend
+
+Open PowerShell:
+
 ```powershell
-cd swasthya-mitra\backend
+cd backend
 python -m venv venv
-# If activation is blocked:  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 Copy-Item .env.example .env
-# Only if Tesseract is installed and not on PATH:
-$env:Path += ";C:\Program Files\Tesseract-OCR"
 uvicorn app.main:app --port 8000
 ```
-Leave it running. In development the **login codes are printed in this window** as `DEV-ONLY OTP ... code=123456` (no email/SMS account needed). Look for that line after you press "send me a code".
 
-**Window 2 – frontend**
+Configure your local `backend/.env` before enabling external services.
+
+### 2. Frontend
+
+Open another PowerShell window:
+
 ```powershell
-cd swasthya-mitra\frontend
+cd frontend
 npm install
-npm run build
-npm start
+npm run dev
 ```
-Open **http://localhost:3000**. (For development with hot reload use `npm run dev` instead of build/start.)
 
-**Run the tests (Window 3, backend venv active)**
+Open http://localhost:3000.
+
+### 3. Run Backend Tests
+
+With the backend virtual environment activated:
+
 ```powershell
-cd swasthya-mitra\backend
+cd backend
 python -m pytest -q
-# optional PostgreSQL run:  $env:TEST_DATABASE_URL="postgresql+psycopg://postgres:PASSWORD@localhost:5432/swasthya_test"; python -m pytest -q
-cd ..\frontend; npm run typecheck
 ```
-**Browser end-to-end (optional)** – start the backend with its output saved, then:
+
+### 4. Frontend Type Check
+
 ```powershell
-cd swasthya-mitra\backend; uvicorn app.main:app --port 8000 *> ..\backend.log     # Window 1 instead of the plain command
-cd swasthya-mitra\e2e; npm init -y; npm i playwright; npx playwright install chromium
-$env:BACKEND_LOG="..\backend.log"; node flow.js
+cd frontend
+npm run typecheck
 ```
-> These commands were written for Windows but **only executed on Linux** (the development sandbox). Paths and activation syntax are standard, but if one step differs on your machine, see "Troubleshooting" in docs/DEPLOYMENT.md.
 
-## Turning on the optional services
-Edit `backend\.env` (see `.env.example`), restart uvicorn:
-* **Gemini** (AI answers, better prescription reading, voice transcription): set `GEMINI_API_KEY`. *Not verified against the live API – see status doc.*
-* **Real email codes**: `OTP_EMAIL_PROVIDER=smtp` + `SMTP_*`. **Real SMS codes**: `OTP_SMS_PROVIDER=twilio` + `TWILIO_*`. Details in docs/SECURITY_AUTH.md.
-* **Hindi/Kannada/Telugu OCR**: install those Tesseract language packs and set `OCR_LANGUAGES=eng+hin+kan+tel`.
-* **PostgreSQL**: set `DATABASE_URL=postgresql+psycopg://...` (tables are created automatically).
+## Optional Services
 
-## Using the app
-Register (consents are unticked by default) → confirm the emailed code → dashboard. Upload a prescription photo → check/edit what was read → tick the confirmation → *only then* create reminders. Ask health questions in the chat (voice supported by browsers that provide it). The red **Emergency** button is on every screen. **Sign-in security** (left menu) manages codes, fingerprint/face, devices and password.
+The following services require configuration:
+
+- **Gemini AI:** Configure `GEMINI_API_KEY`.
+- **Email OTP:** Configure SMTP credentials.
+- **SMS OTP:** Configure Twilio credentials.
+- **Regional-language OCR:** Install the required Tesseract language packs.
+- **PostgreSQL:** Configure the database connection.
+
+Never upload actual credentials or private `.env` files to GitHub. Use the `.env.example` templates.
+
+## Using the Application
+
+Register an account, provide the required consent, and explore the available features:
+
+- Ask Mitra healthcare chatbot
+- Prescription upload and analysis
+- Medication reminders
+- Emergency assistance
+- User profile and health records
+- Security and authentication settings
+
+**Project status:** This is an ongoing academic project. Some features may require configuration or further development. Refer to `docs/IMPLEMENTATION_STATUS.md` before evaluating the application.
