@@ -6,14 +6,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, Query, Response, UploadFile
 from rapidfuzz import fuzz
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.api.deps import DB, CurrentUser
 from app.core.config import get_settings
 from app.core.crypto import decrypt_bytes
 from app.core.security import rate_limiter
-from app.models import HealthProfile, Prescription, PrescriptionItem
-from app.schemas.prescription import ConfirmIn, ItemIn, ItemOut, PrescriptionOut
+from app.models import DoseLog, HealthProfile, Prescription, PrescriptionItem, Reminder
+from app.schemas.prescription import ConfirmIn, ImpactOut, ItemIn, ItemOut, PrescriptionOut
 from app.services import ocr, prescription_parser, prescription_service
 
 router = APIRouter(prefix="/prescriptions", tags=["prescriptions"])
@@ -27,18 +27,24 @@ def _label(c: float) -> str:
 
 
 def _out(p: Prescription) -> PrescriptionOut:
-    items = [
-        ItemOut(
+    items = []
+    for i in p.items:
+        flags, extra = prescription_service.unpack_flags(i.flags)  # accepts records saved before the Analyzer
+        items.append(ItemOut(
             id=i.id, medicine_name=i.medicine_name, strength=i.strength, form=i.form, dosage_instruction=i.dosage_instruction,
             frequency_text=i.frequency_text, duration_text=i.duration_text, confidence=i.confidence,
-            confidence_label=_label(i.confidence), needs_review=i.needs_review, flags=i.flags or [],
+            confidence_label=_label(i.confidence), needs_review=i.needs_review, flags=flags,
             edited_by_user=i.edited_by_user, user_confirmed=i.user_confirmed,
-        ) for i in p.items
-    ]
+            verification_status=prescription_service.verification_status(i.medicine_name, i.dosage_instruction, flags, i.confidence, i.needs_review, i.edited_by_user),
+            raw_text=extra.get("raw_text"), uncertainty_note=extra.get("uncertainty_note"), additional_instructions=extra.get("additional_instructions"),
+        ))
+    _, ex = prescription_service.unpack_text(p.ocr_text)
     return PrescriptionOut(
         id=p.id, status=p.status, extraction_engine=p.extraction_engine, quality=p.quality, warnings=p.warnings or [],
         doctor_name=p.doctor_name, prescribed_date=p.prescribed_date, created_at=p.created_at, confirmed_at=p.confirmed_at,
         has_image=bool(p.image_path), items=items, message=FAIL_MESSAGE if p.status == "failed" else None,
+        patient=ex.get("patient"), prescriber=ex.get("prescriber"), diagnosis=ex.get("diagnosis"),
+        full_transcription=ex.get("full_transcription"), ai_warnings=ex.get("ai_warnings") or [],
     )
 
 
@@ -178,10 +184,29 @@ def confirm(pid: str, body: ConfirmIn, user: CurrentUser, db: DB):
     return {"prescription": _out(p), "allergy_warnings": allergy_warnings}
 
 
+@router.get("/{pid}/impact", response_model=ImpactOut)
+def delete_impact(pid: str, user: CurrentUser, db: DB):
+    """Read-only preview for the 'remove this prescription?' dialog: what else would disappear with it."""
+    p = _own(db, user, pid)
+    item_ids = [i.id for i in p.items]
+    reminder_ids: list[str] = []
+    active = 0
+    if item_ids:
+        rows = db.execute(select(Reminder.id, Reminder.active).where(Reminder.user_id == user.id, Reminder.prescription_item_id.in_(item_ids))).all()
+        reminder_ids, active = [r[0] for r in rows], sum(1 for r in rows if r[1])
+    logged = taken = 0
+    if reminder_ids:
+        logged = db.scalar(select(func.count()).select_from(DoseLog).where(DoseLog.user_id == user.id, DoseLog.reminder_id.in_(reminder_ids), DoseLog.status != "pending")) or 0
+        taken = db.scalar(select(func.count()).select_from(DoseLog).where(DoseLog.user_id == user.id, DoseLog.reminder_id.in_(reminder_ids), DoseLog.status == "taken")) or 0
+    return ImpactOut(status=p.status, medicines=len(item_ids), reminders=len(reminder_ids), active_reminders=active, doses_logged=logged,
+                     doses_taken=taken, in_timeline=p.status == "confirmed", has_photo=bool(p.image_path))
+
+
 @router.delete("/{pid}", status_code=204)
 def delete_prescription(pid: str, user: CurrentUser, db: DB):
     p = _own(db, user, pid)
-    if p.image_path and os.path.exists(p.image_path):
-        os.remove(p.image_path)
-    db.delete(p)  # items → reminders → doses cascade
+    image_path = p.image_path
+    db.delete(p)  # medicine lines → reminders → dose history go with it (database-level cascade)
     db.commit()
+    if image_path and os.path.exists(image_path):  # remove the encrypted photo only once the database delete has succeeded
+        os.remove(image_path)

@@ -5,12 +5,27 @@ import httpx
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+# The test photos need a real TrueType font. Try Linux, Windows and macOS locations, then Pillow's own scalable font.
+FONT_CANDIDATES = [
+    FONT, "DejaVuSans.ttf",
+    "C:/Windows/Fonts/arial.ttf", "C:/Windows/Fonts/segoeui.ttf", "C:/Windows/Fonts/calibri.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf", "/Library/Fonts/Arial.ttf",
+]
+
+
+def _font(size: int):
+    for cand in FONT_CANDIDATES:
+        try:
+            return ImageFont.truetype(cand, size)
+        except OSError:
+            continue
+    return ImageFont.load_default(size)  # Pillow >= 10.1: scalable built-in font
 
 
 def prescription_image(lines: list[str], size=(1400, 1000), font_size=40, blur=0.0) -> bytes:
     img = Image.new("RGB", size, "white")
     d = ImageDraw.Draw(img)
-    f = ImageFont.truetype(FONT, font_size)
+    f = _font(font_size)
     y = 60
     for ln in lines:
         d.text((60, y), ln, fill="black", font=f)

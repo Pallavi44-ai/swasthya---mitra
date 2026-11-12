@@ -32,6 +32,7 @@ class ParsedItem:
     duration_text: str | None = None
     line_conf: float = 0.0
     flags: list[str] = field(default_factory=list)
+    raw_text: str | None = None  # the line exactly as read, for side-by-side checking
 
 
 def _norm_form(w: str | None) -> str | None:
@@ -59,7 +60,7 @@ def parse_line(line: str, conf: float = 1.0) -> ParsedItem | None:
         name = None
     if not name or len(name) < 3:
         return None
-    item = ParsedItem(medicine_name=name, line_conf=conf)
+    item = ParsedItem(medicine_name=name, line_conf=conf, raw_text=line.strip()[:300])
     item.form = _norm_form(form_m.group(1)) if form_m and form_m.group(1).upper() not in ("T.", "C.") else (
         "tablet" if form_m and form_m.group(1).upper() == "T." else "capsule" if form_m else None)
     st = re.search(STRENGTH, rest, re.I)

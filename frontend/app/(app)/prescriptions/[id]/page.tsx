@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { usePrefs } from "@/lib/prefs";
 import { speak } from "@/lib/speech";
-import { confidenceTone, flagText, warningText } from "@/lib/rxText";
+import { STATUS_INFO, confidenceTone, flagText, warningText } from "@/lib/rxText";
 import type { Explain, Prescription, RxItem } from "@/lib/types";
 import { Icon } from "@/components/Icon";
 import { Banner, Field, PageHeader, Spinner, errMsg, useToast } from "@/components/ui";
@@ -29,7 +29,7 @@ export default function PrescriptionReview() {
     try {
       const p = await api<Prescription>(`/prescriptions/${id}`);
       setRx(p);
-      setInclude((prev) => Object.fromEntries(p.items.map((i) => [i.id, prev[i.id] ?? Boolean(i.medicine_name && i.dosage_instruction)])));
+      setInclude((prev) => Object.fromEntries(p.items.map((i) => [i.id, prev[i.id] ?? Boolean(i.medicine_name && i.dosage_instruction && i.verification_status !== "unclear")])));
     } catch (e) { setError(errMsg(e)); }
   }, [id]);
   useEffect(() => { void load(); }, [load]);
@@ -61,6 +61,19 @@ export default function PrescriptionReview() {
       {rx.warnings.length > 0 && <Banner tone="warn" title="Notes about this photo"><ul className="list-disc pl-5">{rx.warnings.map((w) => <li key={w}>{warningText(w)}</li>)}</ul></Banner>}
       {rx.message && <Banner tone="error" title="Nothing could be read">{rx.message}</Banner>}
       {(rx.doctor_name || rx.prescribed_date) && <p className="text-muted">{rx.doctor_name} {rx.prescribed_date && `· ${rx.prescribed_date}`}</p>}
+      {rx.ai_warnings && rx.ai_warnings.length > 0 && <Banner tone="warn" title="The reader also noticed"><ul className="list-disc pl-5">{rx.ai_warnings.map((w) => <li key={w}>{w}</li>)}</ul></Banner>}
+      <Legend />
+      {(rx.patient || rx.prescriber || rx.diagnosis) && (
+        <section className="panel" aria-labelledby="found-h">
+          <h2 id="found-h" className="text-lg font-bold">Also written on the prescription</h2>
+          <dl className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-[auto_1fr]">
+            {rx.patient && <><dt className="font-bold">Patient</dt><dd>{Object.values(rx.patient).join(" · ")}</dd></>}
+            {rx.prescriber && <><dt className="font-bold">Prescribed by</dt><dd>{Object.values(rx.prescriber).join(" · ")}</dd></>}
+            {rx.diagnosis && <><dt className="font-bold">Diagnosis</dt><dd>{rx.diagnosis}</dd></>}
+          </dl>
+          <p className="mt-2 text-sm text-muted">Copied as written. Please check it against your paper.</p>
+        </section>)}
+      {rx.full_transcription && <details className="panel"><summary className="cursor-pointer font-bold text-brand">Show everything I could read on the page</summary><p className="mt-3 whitespace-pre-line">{rx.full_transcription}</p></details>}
       {rx.has_image && <details><summary className="cursor-pointer font-bold text-brand">Show my photo</summary>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`/api/prescriptions/${rx.id}/image`} alt="Your prescription photo" className="mt-3 max-h-96 rounded-xl border border-line" /></details>}
       {warnings.map((w) => <Banner key={w} tone="error" title="Allergy check">{w}</Banner>)}
 
@@ -105,10 +118,15 @@ function ItemCard({ rxId, item, editable, lang, included, onInclude, onChanged }
     <li className={`rounded-2xl border-2 bg-surface p-5 ${included ? "border-brand" : "border-line"}`}>
       <div className="flex flex-wrap items-center gap-3">
         {editable && <label className="flex items-center gap-2 font-bold"><input type="checkbox" className="h-7 w-7 accent-[var(--brand)]" checked={included} onChange={(e) => onInclude(e.target.checked)} /> Include</label>}
-        <span className={`rounded-full px-3 py-1 text-sm font-bold ${confidenceTone(item.confidence_label)}`}>{item.edited_by_user ? "Checked by you" : `${item.confidence_label} confidence · ${Math.round(item.confidence * 100)}%`}</span>
+        <StatusBadge status={item.verification_status ?? "check"} />
+        <span className={`rounded-full px-3 py-1 text-sm font-bold ${confidenceTone(item.confidence_label)}`}>{item.edited_by_user ? "Checked by you" : `Reader’s confidence ${Math.round(item.confidence * 100)}%`}</span>
         {item.user_confirmed && <span className="rounded-full bg-ok-tint px-3 py-1 text-sm font-bold text-ok">Confirmed</span>}
       </div>
-      {!item.edited_by_user && item.flags.length > 0 && <ul className="mt-3 list-disc space-y-0.5 pl-6 text-saffron-ink">{item.flags.map((f) => <li key={f}>{flagText(f)}</li>)}</ul>}
+      {!item.edited_by_user && <p className="mt-2 text-sm text-muted">{STATUS_INFO[item.verification_status ?? "check"].help} The reader’s confidence is not proof that it is right.</p>}
+      {item.raw_text && <p className="mt-3 rounded-xl bg-brand-tint p-3"><span className="font-bold">As written: </span>“{item.raw_text}”</p>}
+      {item.uncertainty_note && <p className="mt-2 font-bold text-saffron-ink">Not sure about: {item.uncertainty_note}</p>}
+      {item.additional_instructions && <p className="mt-2"><span className="font-bold">Also written: </span>{item.additional_instructions}</p>}
+      {!item.edited_by_user && item.flags.filter((f) => !(f === "model_uncertainty_note" && item.uncertainty_note)).length > 0 && <ul className="mt-3 list-disc space-y-0.5 pl-6 text-saffron-ink">{item.flags.filter((f) => !(f === "model_uncertainty_note" && item.uncertainty_note)).map((f) => <li key={f}>{flagText(f)}</li>)}</ul>}
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Field label="Medicine name" htmlFor={`n${p}`}><input id={`n${p}`} className="field" value={d.medicine_name} disabled={!editable} onChange={(e) => set("medicine_name", e.target.value)} /></Field>
         <Field label="Strength" htmlFor={`s${p}`}><input id={`s${p}`} className="field" value={d.strength} disabled={!editable} placeholder="e.g. 500mg" onChange={(e) => set("strength", e.target.value)} /></Field>
@@ -123,6 +141,23 @@ function ItemCard({ rxId, item, editable, lang, included, onInclude, onChanged }
       {ex && (<div className="mt-4 rounded-xl bg-brand-tint p-4">{ex.parsed ? <><p className="font-bold">You wrote: “{ex.original}”</p><ul className="mt-1 list-disc pl-6">{ex.lines.map((l) => <li key={l}>{l}</li>)}</ul></> : <p>I could not turn “{ex.original}” into simple words. Please ask your doctor or pharmacist.</p>}
         <p className="mt-2 text-sm text-muted">This only restates what is written. It does not decide your dose.</p></div>)}
     </li>
+  );
+}
+
+function StatusBadge({ status }: { status: "clear" | "check" | "unclear" }) {
+  const i = STATUS_INFO[status];
+  return <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${i.cls}`}><Icon name={i.icon} className="h-4 w-4" /> {i.label}</span>;
+}
+
+function Legend() {
+  return (
+    <details className="panel">
+      <summary className="cursor-pointer font-bold text-brand">What do Clear, Check and Unclear mean?</summary>
+      <ul className="mt-3 space-y-2">
+        {(["clear", "check", "unclear"] as const).map((k) => <li key={k} className="flex flex-wrap items-center gap-3"><StatusBadge status={k} /><span>{STATUS_INFO[k].help}</span></li>)}
+      </ul>
+      <p className="mt-3 text-sm text-muted">Nothing is used for reminders until you check every medicine and confirm.</p>
+    </details>
   );
 }
 

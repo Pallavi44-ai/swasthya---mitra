@@ -95,7 +95,9 @@ async function step(name, fn) {
 
   await step("prescription: upload photo → real OCR → review screen", async () => {
     await page.goto(BASE + "/prescriptions");
-    await page.setInputFiles("#rx-file", path.join(__dirname, "prescription.jpg"));
+    await page.setInputFiles("#rx-gallery", path.join(__dirname, "prescription.jpg"));
+    await page.getByAltText("Preview of the prescription photo you chose").waitFor();  // nothing is analysed until the button is pressed
+    await page.getByRole("button", { name: "Read this prescription" }).click();
     await page.waitForURL(/\/prescriptions\/[0-9a-f-]{36}/, { timeout: 90000 });
     await page.getByText("Check what I found").waitFor();
     await page.locator('input[value="Metformin"]').waitFor();

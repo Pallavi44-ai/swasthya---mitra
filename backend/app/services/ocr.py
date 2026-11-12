@@ -10,7 +10,7 @@ import logging
 from dataclasses import dataclass, field
 
 import numpy as np
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageFilter, ImageOps, UnidentifiedImageError
 
 from app.core.config import get_settings
 
@@ -51,6 +51,34 @@ def load_image(data: bytes) -> Image.Image:
     if max(img.size) > MAX_SIDE:
         img.thumbnail((MAX_SIDE, MAX_SIDE))
     return img
+
+
+def fix_rotation(img: Image.Image) -> tuple[Image.Image, int]:
+    """Best effort: turn a sideways / upside-down photo upright using Tesseract's orientation detection.
+
+    EXIF rotation is already handled in load_image; this covers photos with no EXIF tag. It only acts when the
+    detector is confident, and silently returns the image unchanged if Tesseract or its OSD data is missing.
+    Returns (image, degrees_rotated).
+    """
+    try:
+        import pytesseract
+
+        d = pytesseract.image_to_osd(ImageOps.grayscale(img), output_type=pytesseract.Output.DICT, timeout=20)
+        deg, conf = int(d.get("rotate", 0)), float(d.get("orientation_conf", 0))
+    except Exception:  # noqa: BLE001 – no tesseract, no OSD data, too little text …
+        return img, 0
+    if deg in (90, 180, 270) and conf >= 2.0:
+        return img.rotate(-deg, expand=True), deg  # OSD reports the clockwise turn needed; PIL turns counter-clockwise
+    return img, 0
+
+
+def enhance_for_model(img: Image.Image, warnings: list[str] | None = None) -> Image.Image:
+    """Prepare the photo that is sent to the vision model: stretch contrast, and soften motion blur only when the
+    quality check flagged it. Nothing is cropped or redrawn, so the handwriting itself is never altered."""
+    out = ImageOps.autocontrast(img.convert("RGB"), cutoff=1)
+    if warnings and "blurry" in warnings:
+        out = out.filter(ImageFilter.UnsharpMask(radius=1.5, percent=80, threshold=3))
+    return out
 
 
 def to_jpeg_bytes(img: Image.Image, quality: int = 85) -> bytes:

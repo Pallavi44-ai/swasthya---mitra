@@ -28,12 +28,15 @@ export interface RxItem {
   id: string; medicine_name: string | null; strength: string | null; form: string | null; dosage_instruction: string | null;
   frequency_text: string | null; duration_text: string | null; confidence: number; confidence_label: "high" | "medium" | "low";
   needs_review: boolean; flags: string[]; edited_by_user: boolean; user_confirmed: boolean;
+  verification_status?: "clear" | "check" | "unclear"; raw_text?: string | null; uncertainty_note?: string | null; additional_instructions?: string | null;
 }
 export interface Prescription {
   id: string; status: "extracted" | "confirmed" | "failed" | "discarded"; extraction_engine: string; quality: Record<string, unknown> | null;
   warnings: string[]; doctor_name: string | null; prescribed_date: string | null; created_at: string; confirmed_at: string | null;
   has_image: boolean; items: RxItem[]; message: string | null;
+  patient?: Record<string, string> | null; prescriber?: Record<string, string> | null; diagnosis?: string | null; full_transcription?: string | null; ai_warnings?: string[];
 }
+export interface RxImpact { status: string; medicines: number; reminders: number; active_reminders: number; doses_logged: number; doses_taken: number; in_timeline: boolean; has_photo: boolean }
 export interface Explain { original: string | null; parsed: boolean; lines: string[]; suggested_times: string[]; as_needed: boolean }
 export interface Eligible { prescription_item_id: string; prescription_id: string; medicine_name: string; strength: string | null; dosage_instruction: string; duration_text: string | null }
 export interface Reminder { id: string; prescription_item_id: string; medicine_name: string; strength: string | null; dosage_instruction: string; times: string[]; start_date: string; end_date: string | null; active: boolean }
